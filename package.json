@@ -1,0 +1,33 @@
+{
+  "name": "memelibrary",
+  "version": "0.0.0",
+  "description": "The Meme Library",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@gixbit/repos/MemeLibrary.git"
+  },
+  "keywords": [
+    "Meme",
+    "Library"
+  ],
+  "author": "Noah D'alelio",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/lodash": "^4.14.150",
+    "@types/parcel-bundler": "^1.12.1",
+    "@types/react": "^16.9.34",
+    "@types/react-dom": "^16.9.7",
+    "parcel": "^1.12.4",
+    "parcel-bundler": "^1.12.4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.15",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "typescript": "^3.8.3"
+  }
+}
