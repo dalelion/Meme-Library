@@ -21,18 +21,25 @@ function handlePublic(req, res) {
 		(resolve, reject) => {
 			fs.exists(PATH, exists => {
 				resolve(exists);
-				if (!exists) {
-					PATH = path.join(__dirname, "public", "404.png");
+				if (exists) {
+					fs.createReadStream(PATH).pipe(res);
 				}
-				fs.createReadStream(PATH).pipe(res);
-			})
+			});
 		}
 	)
 }
 
+function handleNotFound(req, res) {
+	return new Promise(resolve => {
+		fs.createReadStream(path.join(__dirname, "public", "404.png")).pipe(res);
+		resolve(true);
+	});
+}
+
 const SERVER = http.createServer(async (req, res) => {
 	process.stdout.write(`${req.method} ${req.url}\n`);
-	await handlePublic(req, res);
+	await handlePublic(req, res) ||
+	await handleNotFound(req, res);
 });
 
 SERVER.listen(80, "0.0.0.0", () => {
