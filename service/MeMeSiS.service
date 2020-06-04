@@ -1,0 +1,19 @@
+[Unit]
+Description=MemeLibrary Service
+Wants=network-online.target
+After=network-online.target
+Requires=network-online.target
+
+[Service]
+Type=simple
+User=MemeLibrary
+WorkingDirectory=/etc/MemeLibrary
+ExecStart=/usr/bin/node /etc/MemeLibrary/index.js
+Restart=always
+RestartSec=2
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=MemeLibrary
+
+[Install]
+WantedBy=multi-user.target
