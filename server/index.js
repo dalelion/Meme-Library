@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const {DEVELOPMENT, PRODUCTION} = require("../shared/env");
 const Utils = require("../shared/utils");
-
+const PUBLIC_DIR = "../public";
 console.log(DEVELOPMENT, PRODUCTION);
 
 function handlePublic(req, res) {
@@ -12,10 +12,10 @@ function handlePublic(req, res) {
 		case "/":
 		case "/index.html":
 		case "/index.htm":
-			PATH = path.join(__dirname, "public", "index.html");
+			PATH = path.join(__dirname, PUBLIC_DIR, "index.html");
 			break;
 		default:
-			PATH = path.join(__dirname, "public", req.url);
+			PATH = path.join(__dirname, PUBLIC_DIR, req.url);
 			break;
 	}
 	return new Promise(
@@ -32,7 +32,7 @@ function handlePublic(req, res) {
 
 function handleNotFound(req, res) {
 	return new Promise(resolve => {
-		fs.createReadStream(path.join(__dirname, "public", "404.png")).pipe(res);
+		fs.createReadStream(path.join(__dirname, PUBLIC_DIR, "404.png")).pipe(res);
 		resolve(true);
 	});
 }
