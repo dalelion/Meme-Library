@@ -43,7 +43,7 @@ const SERVER = http.createServer(async (req, res) => {
 	await handleNotFound(req, res);
 });
 
-SERVER.listen(80, "0.0.0.0", () => {
+SERVER.listen(3000, "0.0.0.0", () => {
 	const ADDRESS_INFO = SERVER.address();
 	Utils.log(`Listening on ${ADDRESS_INFO.address}:${ADDRESS_INFO.port} @ ${ADDRESS_INFO.family}`);
 });
