@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const {DEVELOPMENT, PRODUCTION} = require("../shared/env");
+const Utils = require("../shared/utils");
 
 console.log(DEVELOPMENT, PRODUCTION);
 
@@ -37,14 +38,14 @@ function handleNotFound(req, res) {
 }
 
 const SERVER = http.createServer(async (req, res) => {
-	process.stdout.write(`${req.method} ${req.url}\n`);
+	Utils.debug(`${req.method} ${req.url}\n`);
 	await handlePublic(req, res) ||
 	await handleNotFound(req, res);
 });
 
 SERVER.listen(80, "0.0.0.0", () => {
 	const ADDRESS_INFO = SERVER.address();
-	process.stdout.write(`Listening on ${ADDRESS_INFO.address}:${ADDRESS_INFO.port} @ ${ADDRESS_INFO.family}\n`);
+	Utils.log(`Listening on ${ADDRESS_INFO.address}:${ADDRESS_INFO.port} @ ${ADDRESS_INFO.family}`);
 });
 
 if (DEVELOPMENT) {
