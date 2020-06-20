@@ -42,7 +42,7 @@ async function main() {
 }
 
 main().then(result => {
-  return child_process.spawnSync("node", [Path.join(ROOT_PATH, options.outDir, options.outFile)], {stdio: "inherit"});
+  return child_process.spawnSync("node", [Path.join(ROOT_PATH, options.outDir, options.outFile), ... process.argv.slice(1)], {stdio: "inherit"});
 }).catch(x => {
   process.exit(1);
 });

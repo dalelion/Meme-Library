@@ -1,3 +1,4 @@
+const cookieParser = require("cookie-parser");
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -5,6 +6,32 @@ const {DEVELOPMENT, PRODUCTION} = require("../shared/env");
 const Utils = require("../shared/utils");
 const PUBLIC_DIR = "../public";
 console.log(DEVELOPMENT, PRODUCTION);
+const cookies = cookieParser("memes");
+
+function handleCookie(req, res) {
+	return new Promise(resolve => {
+		cookies(req, res, callback => resolve(false));
+		resolve(true);
+	});
+}
+
+function handleAPI(req, res) {
+	let PATH;
+	switch (req.url) {
+		case "/user/login":
+			break;
+		case "/file":
+			let stream = fs.createWriteStream("./test.dat");
+			req.on('data', function (chunk) {
+				stream.write(chunk);
+			});
+			req.on('end', function () {
+				stream.close();
+				res.end('done');
+			});
+			return true;
+	}
+}
 
 function handlePublic(req, res) {
 	let PATH;
@@ -39,6 +66,8 @@ function handleNotFound(req, res) {
 
 const SERVER = http.createServer(async (req, res) => {
 	Utils.debug(`${req.method} ${req.url}\n`);
+	await handleCookie(req, res) ||
+	await handleAPI(res, req) ||
 	await handlePublic(req, res) ||
 	await handleNotFound(req, res);
 });
