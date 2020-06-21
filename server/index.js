@@ -1,12 +1,18 @@
 const cookieParser = require("cookie-parser");
+const formidable = require("formidable");
+const {parse} = require("url");
+const mongo = require("mongodb");
 const http = require("http");
+const _ = require("lodash");
 const fs = require("fs");
+const {promisify} = require("util");
 const path = require("path");
 const {DEVELOPMENT, PRODUCTION} = require("../shared/env");
 const Utils = require("../shared/utils");
 const PUBLIC_DIR = "../public";
 console.log(DEVELOPMENT, PRODUCTION);
 const cookies = cookieParser("memes");
+const url = 'mongodb://localhost:27017';
 
 function handleCookie(req, res) {
 	return new Promise(resolve => {
@@ -15,21 +21,73 @@ function handleCookie(req, res) {
 	});
 }
 
-function handleAPI(req, res) {
-	let PATH;
-	switch (req.url) {
+async function handleAPI(req, res) {
+	let form;
+	switch (true) {
 		case "/user/login":
 			break;
-		case "/file":
-			let stream = fs.createWriteStream("./test.dat");
-			req.on('data', function (chunk) {
-				stream.write(chunk);
-			});
-			req.on('end', function () {
-				stream.close();
-				res.end('done');
-			});
-			return true;
+		case /\/file/.test(req.url):
+			switch (req.method) {
+				case "GET":
+					mongo.connect(url, {
+						useNewUrlParser: true,
+						useUnifiedTopology: true
+					}, (err, client) => {
+						if (err) {
+							console.error(err);
+							return;
+						} else {
+							let parsed = parse(req.url, true);
+							const db = client.db('MemeLibrary');
+							const collection = db.collection('Images');
+							collection.find({tags: parsed.query.tags.split(/;/)}).toArray().then(files => {
+								res.writeHead(200, {'content-type': 'application/json'});
+								res.end(JSON.stringify({files}, null, 2));
+							});
+						}
+					});
+					return true;
+				case "POST":
+					const mkdir = promisify(fs.mkdir);
+					await mkdir("./Files", {recursive: true});
+					form = formidable({multiples: true, keepExtensions:true, uploadDir: "./Files"});
+					form.parse(req, (err, fields, values) => {
+						let tags = _.compact(fields.tags.split(' '));
+						if (!_.isArray(values)) {
+							values.fileToUpload = [values.fileToUpload];
+						}
+						console.log(values.fileToUpload);
+						res.writeHead(200, {'content-type': 'application/json'});
+						res.end(JSON.stringify({fields, values}, null, 2));
+						mongo.connect(url, {
+							useNewUrlParser: true,
+							useUnifiedTopology: true
+						}, (err, client) => {
+							if (err) {
+								console.error(err);
+								return;
+							} else {
+								const db = client.db('MemeLibrary');
+								const collection = db.collection('Images');
+								let files = _.transform(values.fileToUpload, (acc, file, key) => {
+									acc.push({
+										filepath: file.path,
+										filename: file.name,
+										mimetype: file.type,
+										tags
+									});
+								}, []);
+								collection.insertMany(files);
+							}
+						});
+					});
+					return true;
+				default:
+					break;
+			}
+			break;
+		default:
+			break;
 	}
 }
 
@@ -65,9 +123,9 @@ function handleNotFound(req, res) {
 }
 
 const SERVER = http.createServer(async (req, res) => {
-	Utils.debug(`${req.method} ${req.url}\n`);
+	Utils.debug(`${req.method} ${req.url}`);
 	await handleCookie(req, res) ||
-	await handleAPI(res, req) ||
+	await handleAPI(req, res) ||
 	await handlePublic(req, res) ||
 	await handleNotFound(req, res);
 });
