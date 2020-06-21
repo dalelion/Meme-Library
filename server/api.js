@@ -10,7 +10,7 @@ async function handleAPI(req, res) {
 	switch (true) {
 		case /^\/user\/login\/?$/.test(req.url):
 			break;
-		case /^\/file\/?$/.test(req.url):
+		case /^\/file\/?\?([\S]+=[^=]+&?)*$/.test(req.url):
 			switch (req.method) {
 				case "GET":
 					mongo.connect(mongo_url, {
