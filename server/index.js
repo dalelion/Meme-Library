@@ -4,8 +4,7 @@ const {parse} = require("url");
 const mongo = require("mongodb");
 const http = require("http");
 const _ = require("lodash");
-const fs = require("fs");
-const {promisify} = require("util");
+const afs = require("./afs");
 const path = require("path");
 const {DEVELOPMENT, PRODUCTION} = require("../shared/env");
 const Utils = require("../shared/utils");
@@ -24,9 +23,9 @@ function handleCookie(req, res) {
 async function handleAPI(req, res) {
 	let form;
 	switch (true) {
-		case "/user/login":
+		case /^\/user\/login\/?$/.test(req.url):
 			break;
-		case /\/file/.test(req.url):
+		case /^\/file\/?$/.test(req.url):
 			switch (req.method) {
 				case "GET":
 					mongo.connect(url, {
@@ -48,8 +47,7 @@ async function handleAPI(req, res) {
 					});
 					return true;
 				case "POST":
-					const mkdir = promisify(fs.mkdir);
-					await mkdir("./Files", {recursive: true});
+					await afs.mkdir("./Files", {recursive: true});
 					form = formidable({multiples: true, keepExtensions:true, uploadDir: "./Files"});
 					form.parse(req, (err, fields, values) => {
 						let tags = _.compact(fields.tags.split(' '));
