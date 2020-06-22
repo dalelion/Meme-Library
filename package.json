@@ -19,9 +19,13 @@
   "devDependencies": {
     "@types/lodash": "^4.14.150",
     "@types/parcel-bundler": "^1.12.1",
-    "@types/react": "^16.9.34",
-    "@types/react-dom": "^16.9.7",
+    "@types/react": "^16.9.38",
+    "@types/react-dom": "^16.9.8",
     "babel-core": "^6.26.0",
+    "babel-loader": "^8.1.0",
+    "babel-runtime": "^6.26.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-plugin-module-resolver": "4.0.0",
     "babel-plugin-transform-dead-code-elimination": "^2.2.3",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-react-jsx": "^6.24.1",
@@ -38,6 +42,6 @@
     "mongodb": "^3.5.9",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "typescript": "^3.8.3"
+    "typescript": "3.9.5"
   }
 }
