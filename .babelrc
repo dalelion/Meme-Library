@@ -1,0 +1,32 @@
+{
+  "plugins": [
+    [
+      "module-resolver", {
+      "stripExtensions": [
+        ".js",
+        ".ts",
+        ".jsx",
+        ".tsx"
+      ],
+      "root": [
+        "."
+      ],
+      "alias": {
+        "^[~/](.*)$": "./\\1",
+        "^src/(.*)$": "./src/\\1",
+        "^node_modules/(.*)$": "./node_modules/\\1",
+      }
+    }
+    ],
+    [ "transform-dead-code-elimination" ],
+    [
+      "transform-inline-environment-variables", {
+      "include": [
+        "NODE_ENV"
+      ]
+    }
+    ],
+    [ "transform-react-jsx" ]
+  ],
+  "presets": [ "env", "es2015", "stage-0" ]
+}

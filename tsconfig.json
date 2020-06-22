@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2015",
+    "sourceMap": true,
+    "noEmit": true,
+    "jsx": "react",
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "typeRoots": [
+      "node_modules/@types",
+      "@types"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "~/*": [
+        "./*"
+      ],
+      "*": [
+        "*",
+        "@types/*"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "bin",
+    "dist",
+    ".cache",
+    "public",
+    "service",
+    "build",
+    "test"
+  ],
+  "parcelTsPluginOptions": {
+    "transpileOnly": true
+  }
+}

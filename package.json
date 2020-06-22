@@ -19,8 +19,19 @@
   "devDependencies": {
     "@types/lodash": "^4.14.150",
     "@types/parcel-bundler": "^1.12.1",
-    "@types/react": "^16.9.34",
-    "@types/react-dom": "^16.9.7",
+    "@types/react": "^16.9.38",
+    "@types/react-dom": "^16.9.8",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^8.1.0",
+    "babel-runtime": "^6.26.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-plugin-module-resolver": "4.0.0",
+    "babel-plugin-transform-dead-code-elimination": "^2.2.3",
+    "babel-plugin-transform-inline-environment-variables": "^0.4.3",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
     "parcel": "^1.12.4",
     "parcel-bundler": "^1.12.4"
   },
@@ -32,6 +43,6 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-images": "^1.1.7",
-    "typescript": "^3.8.3"
+    "typescript": "3.9.5"
   }
 }
