@@ -6,11 +6,13 @@ const afs = require("./afs");
 const mongo_url = 'mongodb://localhost:27017';
 
 async function handleAPI(req, res) {
-	let form;
+    let form;
+    console.log(/^\/file\/?\?([\S]+=[^=]+&?)*$/.test(req.url));
+    console.log(req.url);
 	switch (true) {
 		case /^\/user\/login\/?$/.test(req.url):
 			break;
-		case /^\/file\/?\?([\S]+=[^=]+&?)*$/.test(req.url):
+		case /^\/file\/?\??([^=]+=[^=]+&?)*$/.test(req.url):
 			switch (req.method) {
 				case "GET":
 					mongo.connect(mongo_url, {
@@ -38,10 +40,8 @@ async function handleAPI(req, res) {
 						let tags = _.compact(fields.tags.split(' '));
 						if (!_.isArray(values)) {
 							values.fileToUpload = [values.fileToUpload];
-						}
-						console.log(values.fileToUpload);
-						res.writeHead(200, {'content-type': 'application/json'});
-						res.end(JSON.stringify({fields, values}, null, 2));
+                        }
+                        console.log("HERE");
 						mongo.connect(mongo_url, {
 							useNewUrlParser: true,
 							useUnifiedTopology: true
@@ -60,7 +60,10 @@ async function handleAPI(req, res) {
 										tags
 									});
 								}, []);
-								collection.insertMany(files);
+                                collection.insertMany(files);
+                                console.log("HERE");
+                                res.writeHead(200, {'content-type': 'application/json'});
+                                res.end(JSON.stringify({fields, values}, null, 2));
 							}
 						});
 					});
