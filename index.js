@@ -12,7 +12,7 @@ const RELATIVE_PATH = `./${MATCH.input.substr(MATCH.index + MATCH[0].length)}`;
 if (RELATIVE_PATH !== "./") {
 	console.error(`Please run this command in the Root Directory: ${ROOT_PATH}`)
 }
-const CLIENT_ENTRY = Path.join(ROOT_PATH, "./client/index.ts");
+const CLIENT_ENTRY = Path.join(ROOT_PATH, "./client/index.tsx");
 const SERVER_ENTRY = Path.join(ROOT_PATH, "./server/index.js");
 // Bundler options
 const options = {

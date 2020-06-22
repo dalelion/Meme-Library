@@ -1,6 +1,6 @@
 const path = require("path");
 const fs = require("fs");
-const PUBLIC_DIR = "../public";
+const PUBLIC_DIR = "../../public";
 
 async function handlePublic(req, res) {
 	let PATH;
