@@ -37,7 +37,7 @@ async function handleAPI(req, res) {
 					form = formidable({multiples: true, keepExtensions:true, uploadDir: "./Files"});
 					form.parse(req, (err, fields, values) => {
 						let tags = _.compact(fields.tags.split(' '));
-						if (!_.isArray(values)) {
+						if (!_.isArray(values.fileToUpload)) {
 							values.fileToUpload = [values.fileToUpload];
                         }
 						mongo.connect(mongo_url, {
@@ -49,7 +49,7 @@ async function handleAPI(req, res) {
 								return;
 							} else {
 								const db = client.db('MemeLibrary');
-								const collection = db.collection('Images');
+                                const collection = db.collection('Images');
 								let files = _.transform(values.fileToUpload, (acc, file, key) => {
 									acc.push({
 										filepath: file.path,
@@ -57,7 +57,7 @@ async function handleAPI(req, res) {
 										mimetype: file.type,
 										tags
 									});
-								}, []);
+                                }, []);
                                 collection.insertMany(files);
                                 res.writeHead(200, {'content-type': 'application/json'});
                                 res.end(JSON.stringify({fields, values}, null, 2));
