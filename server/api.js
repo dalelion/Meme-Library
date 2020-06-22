@@ -1,3 +1,4 @@
+const Utils = require("../shared/utils");
 const formidable = require("formidable");
 const {parse} = require("url");
 const mongo = require("mongodb");
@@ -7,8 +8,6 @@ const mongo_url = 'mongodb://localhost:27017';
 
 async function handleAPI(req, res) {
     let form;
-    console.log(/^\/file\/?\?([\S]+=[^=]+&?)*$/.test(req.url));
-    console.log(req.url);
 	switch (true) {
 		case /^\/user\/login\/?$/.test(req.url):
 			break;
@@ -20,7 +19,7 @@ async function handleAPI(req, res) {
 						useUnifiedTopology: true
 					}, (err, client) => {
 						if (err) {
-							console.error(err);
+							Utils.error(err);
 							return;
 						} else {
 							let parsed = parse(req.url, true);
@@ -41,13 +40,12 @@ async function handleAPI(req, res) {
 						if (!_.isArray(values)) {
 							values.fileToUpload = [values.fileToUpload];
                         }
-                        console.log("HERE");
 						mongo.connect(mongo_url, {
 							useNewUrlParser: true,
 							useUnifiedTopology: true
 						}, (err, client) => {
 							if (err) {
-								console.error(err);
+								Utils.error(err);
 								return;
 							} else {
 								const db = client.db('MemeLibrary');
@@ -61,7 +59,6 @@ async function handleAPI(req, res) {
 									});
 								}, []);
                                 collection.insertMany(files);
-                                console.log("HERE");
                                 res.writeHead(200, {'content-type': 'application/json'});
                                 res.end(JSON.stringify({fields, values}, null, 2));
 							}
