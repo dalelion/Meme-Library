@@ -38,7 +38,6 @@
   "dependencies": {
     "cookie-parser": "^1.4.5",
     "formidable": "^1.2.2",
-    "guid": "0.0.12",
     "lodash": "^4.17.15",
     "mongodb": "^3.5.9",
     "react": "^16.13.1",
