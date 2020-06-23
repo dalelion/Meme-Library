@@ -1,15 +1,14 @@
 const http = require("http");
-const path = require("path");
 const {DEVELOPMENT, PRODUCTION} = require("../shared/env");
 const Utils = require("../shared/utils");
-const PUBLIC_DIR = "../public";
-const {handleCookies} = require("./login")
+const {handleCookies, handleAuth} = require("./auth");
 const {handleAPI} = require("./api");
 const {handleNotFound, handlePublic} = require("./static");
 
 const SERVER = http.createServer(async (req, res) => {
 	Utils.debug(`${req.method} ${req.url}`);
 	await handleCookies(req, res) ||
+	await handleAuth(req, res) ||
 	await handleAPI(req, res) ||
 	await handlePublic(req, res) ||
 	await handleNotFound(req, res);
