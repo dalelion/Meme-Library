@@ -6,8 +6,6 @@ async function handlePublic(req, res) {
 	let PATH;
 	switch (req.url) {
 		case "/":
-		case "/index.html":
-		case "/index.htm":
 			PATH = path.join(__dirname, PUBLIC_DIR, "index.html");
 			break;
 		default:

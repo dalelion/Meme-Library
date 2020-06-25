@@ -6,7 +6,7 @@ export class Basic extends React.Component<unknown, unknown> {
   }
   
   render() {
-    return (<div>TEST</div>);
+    return (<div>BASIC</div>);
   }
   
 }

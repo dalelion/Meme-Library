@@ -4,5 +4,4 @@ dist
 build
 .idea
 *.code-workspace
-Files
 public/js

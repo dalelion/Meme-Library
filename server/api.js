@@ -1,68 +1,47 @@
-const Utils = require("../shared/utils");
+const _ = require("lodash");
 const formidable = require("formidable");
 const {parse} = require("url");
-const mongo = require("mongodb");
-const _ = require("lodash");
+const Utils = require("../shared/utils");
 const afs = require("./afs");
-const mongo_url = 'mongodb://localhost:27017';
+const MongoDB = require("./mongo");
 
 async function handleAPI(req, res) {
-    let form;
+	let form;
 	switch (true) {
 		case /^\/user\/login\/?$/.test(req.url):
 			break;
 		case /^\/file\/?\??([^=]+=[^=]+&?)*$/.test(req.url):
 			switch (req.method) {
 				case "GET":
-					mongo.connect(mongo_url, {
-						useNewUrlParser: true,
-						useUnifiedTopology: true
-					}, (err, client) => {
-						if (err) {
-							Utils.error(err);
-							return;
-						} else {
-							let parsed = parse(req.url, true);
-							const db = client.db('MemeLibrary');
-							const collection = db.collection('Images');
-							collection.find({tags: parsed.query.tags.split(/;/)}).toArray().then(files => {
-								res.writeHead(200, {'content-type': 'application/json'});
-								res.end(JSON.stringify({files}, null, 2));
-							});
-						}
-					});
+					MongoDB.Images().then(collection => {
+						let parsed = parse(req.url, true);
+						collection.find({tags: parsed.query.tags.split(/;/)}).toArray().then(files => {
+							res.writeHead(200, {'content-type': 'application/json'});
+							res.end(JSON.stringify({files}, null, 2));
+						});
+					}).catch(Utils.error);
 					return true;
 				case "POST":
 					await afs.mkdir("./Files", {recursive: true});
-					form = formidable({multiples: true, keepExtensions:true, uploadDir: "./Files"});
+					form = formidable({multiples: true, keepExtensions: true, uploadDir: "./Files"});
 					form.parse(req, (err, fields, values) => {
 						let tags = _.compact(fields.tags.split(' '));
 						if (!_.isArray(values.fileToUpload)) {
 							values.fileToUpload = [values.fileToUpload];
-                        }
-						mongo.connect(mongo_url, {
-							useNewUrlParser: true,
-							useUnifiedTopology: true
-						}, (err, client) => {
-							if (err) {
-								Utils.error(err);
-								return;
-							} else {
-								const db = client.db('MemeLibrary');
-                                const collection = db.collection('Images');
-								let files = _.transform(values.fileToUpload, (acc, file, key) => {
-									acc.push({
-										filepath: file.path,
-										filename: file.name,
-										mimetype: file.type,
-										tags
-									});
-                                }, []);
-                                collection.insertMany(files);
-                                res.writeHead(200, {'content-type': 'application/json'});
-                                res.end(JSON.stringify({fields, values}, null, 2));
-							}
-						});
+						}
+						MongoDB.Images().then(collection => {
+							let files = _.transform(values.fileToUpload, (acc, file, key) => {
+								acc.push({
+									filepath: file.path,
+									filename: file.name,
+									mimetype: file.type,
+									tags
+								});
+							}, []);
+							collection.insertMany(files);
+							res.writeHead(200, {'content-type': 'application/json'});
+							res.end(JSON.stringify({fields, values}, null, 2));
+						}).catch(Utils.error);
 					});
 					return true;
 				default:
@@ -75,5 +54,5 @@ async function handleAPI(req, res) {
 }
 
 module.exports = {
-    handleAPI
+	handleAPI
 };

@@ -12,7 +12,7 @@ const RELATIVE_PATH = `./${MATCH.input.substr(MATCH.index + MATCH[0].length)}`;
 if (RELATIVE_PATH !== "./") {
 	console.error(`Please run this command in the Root Directory: ${ROOT_PATH}`)
 }
-const CLIENT_ENTRY = Path.join(ROOT_PATH, "./client/index.tsx");
+const CLIENT_ENTRY = Path.join(ROOT_PATH, "./client/*.tsx");
 const SERVER_ENTRY = Path.join(ROOT_PATH, "./server/index.js");
 // Bundler options
 const options = {
@@ -40,7 +40,7 @@ const CLIENT_OPTIONS = {
 	minify: true, // Minify files, enabled if process.env.NODE_ENV === 'production'
 	bundleNodeModules: true, // By default, package.json dependencies are not included when using 'node' or 'electron' with 'target' option above. Set to true to adds them to the bundle, false by default
 	outDir: './public/js', // The out directory to put the build files in, defaults to dist
-	outFile: `./index.js` // The name of the outputFile
+	// outFile: `./index.js` // The name of the outputFile
 };
 
 const SERVER_OPTIONS = {
