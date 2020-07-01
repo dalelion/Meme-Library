@@ -4,6 +4,7 @@ const {parse} = require("url");
 const Utils = require("../shared/utils");
 const afs = require("./afs");
 const MongoDB = require("./mongo");
+const fs = require("fs");
 
 async function handleAPI(req, res) {
 	let form;
@@ -47,7 +48,10 @@ async function handleAPI(req, res) {
 				default:
 					break;
 			}
-			break;
+			break
+		case /^\/file\/([^\/?&=#]+)$/.test(req.url):
+			fs.createReadStream(`Files/${req.url.match(/^\/file\/([^\/?&=#]+)$/)[1]}`).pipe(res);
+			return true;
 		default:
 			break;
 	}

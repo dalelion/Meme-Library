@@ -1,74 +1,107 @@
-import React, { Component, Fragment } from 'react';
+import React, {Component, Fragment} from 'react';
+import ReactDOM from 'react-dom'
 import Carousel, { Modal, ModalGateway } from 'react-images';
+import Xhr from "xhr";
+import _ from "lodash";
 
-const images = [{source: 'https://media.discordapp.net/attachments/318246233384943617/715035866619445339/1590539278770.png'},
-  { source: 'https://media.discordapp.net/attachments/318246233384943617/710706091725422663/ah.jpg' },
-  { source: 'https://media.discordapp.net/attachments/318246233384943617/710704688336470026/1589142723752.png' },
-  { source: 'https://media.discordapp.net/attachments/318246233384943617/710702298300678255/Vigne_holds_Concepts_of_Programming_Languages_by_Sebesta.png'},
-  { source: 'https://media.discordapp.net/attachments/318246233384943617/710702194671747212/1586387625160.gif'},
-  { source: 'https://media.discordapp.net/attachments/474324174828077056/722174280548352040/onsa_40.png'},
-  { source: 'https://media.discordapp.net/attachments/474324174828077056/718980758613655582/fa404b6b-5845-4825-a40c-9812884f09ae.jpg'},
-  { source: 'https://media.discordapp.net/attachments/474324174828077056/711185685830434826/1571197657910.jpg'}];
+type GalleryProps = {
+  images: {source: string }[];
+}
 
-export class Gallery extends Component<unknown, unknown> {
+type GalleryState = {
+  modalIsOpen: boolean;
+  images: {source: string }[];
+}
+
+type InputBoxState = {
+  images: {source: string}[];
+}
+
+export class InputBox extends Component<any, InputBoxState> {
+  private textRef: React.RefObject<HTMLInputElement>;
+
   constructor(props) {
     super(props);
-  }
-  
-  state = { modalIsOpen: false }
-  toggleModal = () => {
-    this.setState(state => ({ modalIsOpen: !state.modalIsOpen }));
+    this.state = {images: []};
+    this.textRef = React.createRef();
   }
   
   render() {
-    //const { modalIsOpen } = this.state;
-    
+    return (
+      <div id={'memes'}>
+        <input ref={this.textRef} type={'text'}/>
+        <input type={'button'} onClick={event => {
+          new Promise( (resolve, reject) => {
+            Xhr.get(`/file?tags=${this.textRef.current.value}`, (error, res) => {
+              if (error) {
+                reject(error);
+              } else {
+                let result = _.isString(res.body) ? JSON.parse(res.body) : res.body;
+                resolve(result.files);
+              }
+            });
+          }).then((results: File[]) => {
+            console.log(results);
+            debugger;
+            this.setState({images: results.map(result => ({source: `/file/${result.filepath.replace(/Files[\/\\]/, '')}`}))})
+          });
+        }}/>
+        <Gallery images={this.state.images}/>
+      </div>
+      
+    );
+  }
+  
+}
+
+export class Gallery extends Component<GalleryProps, GalleryState> {
+  constructor(props) {
+    super(props);
+    this.state = { modalIsOpen: false, images: this.props.images || [] }
+  }
+  
+  toggleModal () {
+    this.setState(state => ({ modalIsOpen: !state.modalIsOpen }));
+  }
+  
+  render () {
     return (
       <Fragment>
-          <GalleryView>
-            {images.map((image) => (
-              <Image
-                onClick={() => this.toggleModal() }
-                key={image.source}
-              >
-                <img
-                  alt={'roar'}
-                  src={image.source}
-                  style={{
-                    cursor: 'pointer',
-                    position: 'absolute',
-                    maxWidth: '100%',
-                  }}
-                />
-              </Image>
-            ))}
-          </GalleryView>
+        <GalleryView>
+          {this.props.images.map((image, index) => (
+            <Image
+              onClick={() => this.toggleModal() }
+              key={index}
+            >
+              <img
+                alt={'roar'}
+                src={image.source}
+                style={{
+                  cursor: 'pointer',
+                  position: 'absolute',
+                  maxWidth: '100%',
+                }}
+              />
+            </Image>
+          ))}
+        </GalleryView>
     
         <ModalGateway>
           {this.state.modalIsOpen ? (
             <Modal onClose={() => this.toggleModal()}>
               <Carousel
-                views={images}
+                views={this.props.images}
               />
             </Modal>
           ) : null}
         </ModalGateway>
-      </Fragment>);
-      /*
-      <ModalGateway>
-        {modalIsOpen ? (
-          <Modal onClose={this.toggleModal}>
-            <Carousel views={images} />
-          </Modal>
-        ) : null}
-      </ModalGateway>
-    );*/
-    //return (<Carousel views={images} />);
+      </Fragment>
+    );
   }
+
 }
 
 const gutter = 2;
-
 const GalleryView = (props: any) => (
   <div
     style={{
@@ -92,9 +125,19 @@ const Image = (props: any) => (
       position: 'relative',
       width: `calc(25% - ${gutter * 2}px)`,
       ':hover': {
-      opacity: 0.9,
-    },
+        opacity: 0.9,
+      },
     }}
     {...props}
   />
 );
+
+type File = {
+  filename: string;
+  filepath: string;
+  mimetype: string;
+  tags: string[];
+  _id: string;
+}
+
+ReactDOM.render(<InputBox/>, document.querySelector('#mount'));
