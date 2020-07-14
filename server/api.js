@@ -3,6 +3,7 @@ const formidable = require("formidable");
 const Utils = require("../shared/utils");
 const afs = require("./afs");
 const MongoDB = require("./mongo");
+const fs = require("fs");
 
 function handleSearch(req, res, next) {
   MongoDB.Images().then(collection => {
@@ -52,6 +53,10 @@ function handleUpload(req, res, next) {
 }
 
 function handleDownload(req, res, next) {
+  if (req.params.file_id) {
+    fs.createReadStream(`Files/${req.params.file_id}`).pipe(res);
+    return;
+  }
   next();
 }
 
