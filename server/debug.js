@@ -1,6 +1,5 @@
 const _ = require("lodash");
 const Utils = require("../shared/utils");
-const colors = require("colors");
 /**
  *
  * @param {Request} req
@@ -9,6 +8,7 @@ const colors = require("colors");
  */
 function handleDebug(req, res, next) {
   res.on("finish", () => {
+    let reset = "".reset;
     let status = `${res.statusCode}`;
     let method = `${req.method}`.magenta;
     let url = `${req.url}`.cyan;
@@ -26,7 +26,7 @@ function handleDebug(req, res, next) {
         status = status.red;
         break;
     }
-    Utils.debug(`${status} ${method} ${url}`);
+    Utils.debug(`${reset}${status} ${method} ${url}`);
   });
   next();
 }
