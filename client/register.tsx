@@ -1,24 +1,23 @@
-import React, {Component, Fragment} from 'react';
+import React, {Component} from 'react';
 import ReactDOM from 'react-dom'
-import Carousel, { Modal, ModalGateway } from 'react-images';
 import Xhr from "xhr";
-import _ from "lodash";
 
 type LoginProps = {}
 
 type LoginState = {
   username: string;
-  password: string;
+  password1: string;
+  password2: string;
 }
 
 export class Login extends Component<LoginProps, LoginState> {
   constructor(props) {
     super(props);
-    this.state = { username: "", password: ""};
+    this.state = {username: "", password1: "", password2: ""};
   }
   
   handleSubmit(e) {
-    Xhr.post("/auth", {
+    Xhr.post("/user", {
         body: this.state,
         json: true
       },
@@ -36,20 +35,24 @@ export class Login extends Component<LoginProps, LoginState> {
           }
         }
       }
-    )
+    );
   }
   
-  render () {
+  render() {
     return (
       <div>
         <label>Username</label>
         <input type={'text'} placeholder={'ex. Memes'} name={'Username'} value={this.state.username} onChange={e => this.setState({username: e.target.value})} required/>
         <div>
           <label>Password</label>
-          <input type={'password'} placeholder={'M3M35'} name={'Password'} onChange={e => this.setState({password: e.target.value})} required/>
+          <input type={'password'} placeholder={'Password'} name={'Password1'} value={this.state.password1} onChange={e => this.setState({password1: e.target.value})} required/>
         </div>
         <div>
-          <button type={'submit'} onClick={e => this.handleSubmit(e)}>Login</button>
+          <label>Re-enter Password</label>
+          <input type={'password'} placeholder={'Re-enter Password'} name={'Password2'} value={this.state.password2} onChange={e => this.setState({password2: e.target.value})} required/>
+        </div>
+        <div>
+          <button type={'submit'} onClick={e => this.handleSubmit(e)}>Register</button>
         </div>
       </div>
     );

@@ -5,14 +5,16 @@ const Utils = require("../shared/utils");
 const router = require("./router");
 const finalhandler = require("finalhandler");
 const Authentication = require("./auth");
+const User = require("./user");
 const API = require("./api");
 const Query = require("./query");
 const Debug = require("./debug");
 const Static = require("./static");
-
+const colors = require("colors");
 Debug(router);
 Query(router);
 Authentication(router);
+User(router);
 API(router);
 Static(router);
 

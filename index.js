@@ -1,7 +1,6 @@
 const child_process = require("child_process");
 const Bundler = require('parcel-bundler');
 const Path = require('path');
-
 const [ARGV, ARGV0] = [process.argv, process.argv0];
 
 // Path Specification
@@ -39,7 +38,7 @@ const CLIENT_OPTIONS = {
 	watch: true, // Whether to watch the files and rebuild them on change, defaults to process.env.NODE_ENV !== 'production'
 	minify: false, // Minify files, enabled if process.env.NODE_ENV === 'production'
 	bundleNodeModules: true, // By default, package.json dependencies are not included when using 'node' or 'electron' with 'target' option above. Set to true to adds them to the bundle, false by default
-	outDir: './public/js' // The out directory to put the build files in, defaults to dist
+	outDir: './dist/server/public/js' // The out directory to put the build files in, defaults to dist
 	// outFile: `./index.js` // The name of the outputFile
 };
 
@@ -56,40 +55,42 @@ const SERVER_OPTIONS = {
 
 async function run(resolve, reject) {
 	let CLIENT, SERVER, CLIENT_BUNDLE, SERVER_BUNDLE, SERVER_PROCESS;
+	let server_compiling = true;
 	CLIENT = new Bundler(CLIENT_ENTRY, CLIENT_OPTIONS);
-	CLIENT_BUNDLE = await CLIENT.bundle();
+	
+	CLIENT.on("buildStart", async () => {
+	});
+	
+	CLIENT.on("buildEnd", async () => {
+		let cp = new Promise(resolve => {
+			child_process.spawn(...["cp", ["-r", "../../public", "./"], {
+				stdio: "inherit",
+				cwd: Path.join(ROOT_PATH, SERVER_OPTIONS.outDir)
+			}]).on("close", resolve);
+		});
+		await cp;
+		if (!server_compiling) {
+			process.stdout.write(`Client Code Rebuilt; Restarting Server...\n`);
+			await SERVER.bundle();
+		}
+	});
 	
 	SERVER = new Bundler(SERVER_ENTRY, SERVER_OPTIONS);
 	SERVER.on("buildStart", () => {
+		server_compiling = true;
 		if (SERVER_PROCESS) {
 			SERVER_PROCESS.kill(9);
 			SERVER_PROCESS = null;
 		}
 	});
 	SERVER.on("buildEnd", async() => {
-		let rm = new Promise(resolve => {
-			child_process.spawn(...["rm", ["-rf", "./public"], {
-				stdio: "inherit",
-				cwd: Path.join(ROOT_PATH, SERVER_OPTIONS.outDir)
-			}]).on("close", resolve);
-		});
-		await rm;
-		let ln = new Promise(resolve => {
-			child_process.spawn(...["ln", ["-fs", "../../public"], {
-				stdio: "inherit",
-				cwd: Path.join(ROOT_PATH, SERVER_OPTIONS.outDir)
-			}]).on("close", resolve);
-		});
-		await ln;
-		Promise.all([rm, ln]).then(results => child_process.fork(...[SERVER_OPTIONS.outFile, ARGV.slice(2), {
+		SERVER_PROCESS = child_process.fork(...[SERVER_OPTIONS.outFile, ARGV.slice(2), {
 			stdio: "inherit",
 			cwd: Path.join(ROOT_PATH, SERVER_OPTIONS.outDir)
-		}])).then(server => {
-			SERVER_PROCESS = server;
-		}).catch(err => {
-			process.stderr.write(`${err.stack}`);
-		});
+		}]);
+		server_compiling = false;
 	});
+	CLIENT_BUNDLE = await CLIENT.bundle();
 	SERVER_BUNDLE = await SERVER.bundle();
 	resolve([await CLIENT_BUNDLE, await SERVER_BUNDLE]);
 }
