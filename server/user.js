@@ -1,5 +1,5 @@
 const MongoDB = require("./mongo");
-
+const {uuid} = require("uuidv4");
 function handleUser(req, res, next) {
 	switch (req.method) {
 		case "GET":
@@ -14,8 +14,6 @@ function handleUser(req, res, next) {
 			});
 			req.on("end",function () {
 				const MESSAGE = JSON.parse(body);
-				console.log(MESSAGE);
-				
 				MongoDB.Users().then(collection => {
 					collection.findOne({username: MESSAGE.username}).then(row => {
 						if (row) {
@@ -26,7 +24,11 @@ function handleUser(req, res, next) {
 							}));
 						} else {
 							if (MESSAGE.password1 === MESSAGE.password2) {
-								collection.insertOne({username: MESSAGE.username, password: MESSAGE.password1}).then(result => {
+								collection.insertOne({
+									_id: uuid(),
+									username: MESSAGE.username,
+									password: MESSAGE.password1
+								}).then(result => {
 									res.writeHead(200);
 									res.end(JSON.stringify({
 										status: "SUCCESS"

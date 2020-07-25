@@ -55,6 +55,7 @@ const SERVER_OPTIONS = {
 
 async function run(resolve, reject) {
 	let CLIENT, SERVER, CLIENT_BUNDLE, SERVER_BUNDLE, SERVER_PROCESS;
+	let server_compiling = true;
 	CLIENT = new Bundler(CLIENT_ENTRY, CLIENT_OPTIONS);
 	
 	CLIENT.on("buildStart", async () => {
@@ -68,22 +69,26 @@ async function run(resolve, reject) {
 			}]).on("close", resolve);
 		});
 		await cp;
+		if (!server_compiling) {
+			process.stdout.write(`Client Code Rebuilt; Restarting Server...\n`);
+			await SERVER.bundle();
+		}
 	});
 	
 	SERVER = new Bundler(SERVER_ENTRY, SERVER_OPTIONS);
 	SERVER.on("buildStart", () => {
+		server_compiling = true;
 		if (SERVER_PROCESS) {
 			SERVER_PROCESS.kill(9);
 			SERVER_PROCESS = null;
 		}
 	});
 	SERVER.on("buildEnd", async() => {
-
-		
 		SERVER_PROCESS = child_process.fork(...[SERVER_OPTIONS.outFile, ARGV.slice(2), {
 			stdio: "inherit",
 			cwd: Path.join(ROOT_PATH, SERVER_OPTIONS.outDir)
 		}]);
+		server_compiling = false;
 	});
 	CLIENT_BUNDLE = await CLIENT.bundle();
 	SERVER_BUNDLE = await SERVER.bundle();

@@ -25,7 +25,14 @@ export class Login extends Component<LoginProps, LoginState> {
         if (error) {
           console.error(error);
         } else {
-          console.log(response, body);
+          switch(body.status) {
+            case "SUCCESS":
+              window.location.href = "/login.html";
+              break;
+            case "FAIL":
+              //TODO: NOAH DOES THINGS WITH THIS IN THE UI BECAUSE YOU CAN OKAY!?
+              break;
+          }
         }
       }
     );

@@ -4,42 +4,54 @@ import Carousel, { Modal, ModalGateway } from 'react-images';
 import Xhr from "xhr";
 import _ from "lodash";
 
-type LoginProps = {
-  UserInfo: string ;
-}
+type LoginProps = {}
 
 type LoginState = {
-  HasCookie: boolean;
-  UserInfo: string;
+  username: string;
+  password: string;
 }
 
-export class Login extends Component<any, any> {
+export class Login extends Component<LoginProps, LoginState> {
   constructor(props) {
     super(props);
-    this.state = { HasCookie: false, UserInfo: "User:Pass"};
+    this.state = { username: "", password: ""};
   }
   
   handleSubmit(e) {
-  
+    Xhr.post("/auth", {
+        body: this.state,
+        json: true
+      },
+      (error, response, body) => {
+        if (error) {
+          console.error(error);
+        } else {
+          switch(body.status) {
+            case "SUCCESS":
+              window.location.href = "/login.html";
+              break;
+            case "FAIL":
+              //TODO: NOAH DOES THINGS WITH THIS IN THE UI BECAUSE YOU CAN OKAY!?
+              break;
+          }
+        }
+      }
+    )
   }
   
   render () {
     return (
-      <Fragment>
+      <div>
+        <label>Username</label>
+        <input type={'text'} placeholder={'ex. Memes'} name={'Username'} value={this.state.username} onChange={e => this.setState({username: e.target.value})} required/>
         <div>
-          <form onSubmit={this.handleSubmit}>
-            <label>Username</label>
-            <input type={'text'} placeholder={'ex. Memes'} name={'Username'} required/>
-            <div>
-            <label>Password</label>
-            <input type={'password'} placeholder={'M3M35'} name={'Password'} required/>
-            </div>
-            <div>
-            <button type={'submit'}>Login</button>
-            </div>
-          </form>
+          <label>Password</label>
+          <input type={'password'} placeholder={'M3M35'} name={'Password'} onChange={e => this.setState({password: e.target.value})} required/>
         </div>
-      </Fragment>
+        <div>
+          <button type={'submit'} onClick={e => this.handleSubmit(e)}>Login</button>
+        </div>
+      </div>
     );
   }
   
