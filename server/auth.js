@@ -11,7 +11,7 @@ function handleSession(req, res, next) {
 		AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
 			if (auth && Date.now() < auth.expireAt) {
 				const EXPIRES = new Date(EXPIRY);
-				AuthCol.updateOne({_id: req.cookies.session_id}, [{$set: {expireAt: EXPIRES}}], {upsert: true}).finally(() => {
+				AuthCol.updateOne({_id: req.cookies.session_id}, [{$set: {expireAt: EXPIRES}}], {upsert: false}).finally(() => {
 					res.setHeader("User-Session", true);
 					res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${EXPIRES.toUTCString()}; Path=/`);
 					next();
@@ -28,9 +28,9 @@ function handleAuth(req, res, next) {
 	const EXPIRY = Date.now() + MAX_AGE;
 	switch (req.method) {
 		case "GET":
-			res.setHeader("Content-Type", "application/json");
 			MongoDB.Authentication().then(AuthCol => {
 				AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
+					res.setHeader("Content-Type", "application/json");
 					if (auth && Date.now() < auth.expireAt) {
 						res.writeHead(200);
 						res.end(JSON.stringify({
@@ -48,12 +48,12 @@ function handleAuth(req, res, next) {
 			});
 			break;
 		case "PUT":
-			res.setHeader("Content-Type", "application/json");
 			MongoDB.Authentication().then(AuthCol => {
 				AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
+					res.setHeader("Content-Type", "application/json");
 					if (auth && Date.now() < auth.expireAt) {
 						const EXPIRES = new Date(EXPIRY);
-						AuthCol.updateOne({_id: req.cookies.session_id}, [{$set: {expireAt: EXPIRES}}], {upsert: true}).then(auth => {
+						AuthCol.updateOne({_id: req.cookies.session_id}, [{$set: {expireAt: EXPIRES}}], {upsert: false}).then(auth => {
 							res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${EXPIRES.toUTCString()}; Path=/`);
 							res.writeHead(200);
 							res.end(JSON.stringify({
@@ -72,7 +72,6 @@ function handleAuth(req, res, next) {
 			});
 			break;
 		case "POST":
-			res.setHeader("Content-Type", "application/json");
 			let body = "";
 			req.on("data", function (data) {
 				body += data;
@@ -82,9 +81,11 @@ function handleAuth(req, res, next) {
 				Promise.all([MongoDB.Users(), MongoDB.Authentication()]).then(results => {
 					let [UserCol, AuthCol] = results;
 					UserCol.findOne({username: MESSAGE.username}).then(user => {
+						res.setHeader("Content-Type", "application/json");
 						if (user) {
 							if (user.password === MESSAGE.password) {
 								AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
+									
 									if (auth && Date.now() > auth.expireAt) {
 										res.writeHead(200);
 										res.end(JSON.stringify({
@@ -127,9 +128,9 @@ function handleAuth(req, res, next) {
 			});
 			break;
 		case "DELETE":
-			res.setHeader("Content-Type", "application/json");
 			MongoDB.Authentication().then(AuthCol => {
 				AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
+					res.setHeader("Content-Type", "application/json");
 					if (auth) {
 						AuthCol.deleteOne({_id: req.cookies.session_id}).then(result => {
 							res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${new Date().toUTCString()}; Path=/`);

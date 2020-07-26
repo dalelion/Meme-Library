@@ -3,10 +3,10 @@ const {uuid} = require("uuidv4");
 function handleUser(req, res, next) {
 	switch (req.method) {
 		case "GET":
-			res.setHeader("Content-Type", "application/json");
 			Promise.all([MongoDB.Users(), MongoDB.Authentication()]).then(results => {
 				let [UserCol, AuthCol] = results;
 				AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
+					res.setHeader("Content-Type", "application/json");
 					if (auth && Date.now() < auth.expireAt) {
 						UserCol.findOne({_id: auth.userid}).then(user => {
 							if (user) {
@@ -35,7 +35,6 @@ function handleUser(req, res, next) {
 			});
 			break;
 		case "POST":
-			res.setHeader("Content-Type", "application/json");
 			let body = "";
 			req.on("data", function (data) {
 				body += data;
@@ -44,6 +43,7 @@ function handleUser(req, res, next) {
 				const MESSAGE = JSON.parse(body);
 				MongoDB.Users().then(UserCol => {
 					UserCol.findOne({username: MESSAGE.username}).then(row => {
+						res.setHeader("Content-Type", "application/json");
 						if (row) {
 							res.writeHead(400);
 							res.end(JSON.stringify({
