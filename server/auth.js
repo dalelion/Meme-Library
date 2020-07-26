@@ -5,45 +5,67 @@ const MongoDB = require("./mongo");
 
 const MAX_AGE = 5 * 6e+4;
 
+function handleSession(req, res, next) {
+	const EXPIRY = Date.now() + MAX_AGE;
+	MongoDB.Authentication().then(AuthCol => {
+		AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
+			if (auth && Date.now() < auth.expireAt) {
+				const EXPIRES = new Date(EXPIRY);
+				AuthCol.updateOne({_id: req.cookies.session_id}, [{$set: {expireAt: EXPIRES}}], {upsert: true}).finally(() => {
+					res.setHeader("User-Session", true);
+					res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${EXPIRES.toUTCString()}; Path=/`);
+					next();
+				});
+			} else {
+				res.setHeader("User-Session", false);
+				next();
+			}
+		})
+	})
+}
+
 function handleAuth(req, res, next) {
 	const EXPIRY = Date.now() + MAX_AGE;
 	switch (req.method) {
 		case "GET":
 			res.setHeader("Content-Type", "application/json");
-			MongoDB.Authentication().then(collection => {
-				collection.findOne({_id: req.cookies.session_id}).then(auth => {
+			MongoDB.Authentication().then(AuthCol => {
+				AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
 					if (auth && Date.now() < auth.expireAt) {
 						res.writeHead(200);
 						res.end(JSON.stringify({
-							userid: auth.userid,
-							status: "SUCCESS"
+							status: "SUCCESS",
+							userid: auth.userid
 						}));
 					} else {
 						res.writeHead(401);
-						res.end(JSON.stringify({status: "FAIL"}));
+						res.end(JSON.stringify({
+							status: "FAIL",
+							reason: "Session expired or inactive"
+						}));
 					}
 				});
 			});
 			break;
 		case "PUT":
 			res.setHeader("Content-Type", "application/json");
-			MongoDB.Authentication().then(collection => {
-				collection.findOne({_id: req.cookies.session_id}).then(auth => {
+			MongoDB.Authentication().then(AuthCol => {
+				AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
 					if (auth && Date.now() < auth.expireAt) {
 						const EXPIRES = new Date(EXPIRY);
-						collection.updateOne({_id: req.cookies.session_id}, [{$set: {expireAt: EXPIRES}}], {upsert: true}).then(row => {
-							res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${EXPIRES.toUTCString()}`);
+						AuthCol.updateOne({_id: req.cookies.session_id}, [{$set: {expireAt: EXPIRES}}], {upsert: true}).then(auth => {
+							res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${EXPIRES.toUTCString()}; Path=/`);
 							res.writeHead(200);
 							res.end(JSON.stringify({
-								userid: row.userid,
-								status: "SUCCESS"
+								status: "SUCCESS",
+								userid: auth.userid
 							}));
 						});
 					} else {
 						res.writeHead(401);
 						res.end(JSON.stringify({
 							status: "FAIL",
-							reason: "Token expired"
+							reason: "Session expired or inactive"
 						}));
 					}
 				});
@@ -55,7 +77,7 @@ function handleAuth(req, res, next) {
 			req.on("data", function (data) {
 				body += data;
 			});
-			res.on("close", function () {
+			req.on("end", function () {
 				const MESSAGE = JSON.parse(body);
 				Promise.all([MongoDB.Users(), MongoDB.Authentication()]).then(results => {
 					let [UserCol, AuthCol] = results;
@@ -66,8 +88,8 @@ function handleAuth(req, res, next) {
 									if (auth && Date.now() > auth.expireAt) {
 										res.writeHead(200);
 										res.end(JSON.stringify({
-											userid: auth.userid,
-											status: "SUCCESS"
+											status: "SUCCESS",
+											userid: auth.userid
 										}));
 									} else {
 										const ID = uuidv4();
@@ -77,11 +99,11 @@ function handleAuth(req, res, next) {
 											userid: user._id,
 											expireAt: EXPIRES
 										}).then(result => {
-											res.setHeader("Set-Cookie", `session_id=${ID}; Expires=${EXPIRES.toUTCString()}`);
+											res.setHeader("Set-Cookie", `session_id=${ID}; Expires=${EXPIRES.toUTCString()}; Path=/`);
 											res.writeHead(200);
 											res.end(JSON.stringify({
-												userid: user._id,
-												status: "SUCCESS"
+												status: "SUCCESS",
+												userid: user._id
 											}));
 										});
 									}
@@ -106,20 +128,23 @@ function handleAuth(req, res, next) {
 			break;
 		case "DELETE":
 			res.setHeader("Content-Type", "application/json");
-			MongoDB.Authentication().then(collection => {
-				collection.findOne({_id: req.cookies.session_id}).then(auth => {
+			MongoDB.Authentication().then(AuthCol => {
+				AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
 					if (auth) {
-						collection.deleteOne({_id: req.cookies.session_id}).then(result => {
-							res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${new Date().toUTCString()}`);
+						AuthCol.deleteOne({_id: req.cookies.session_id}).then(result => {
+							res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${new Date().toUTCString()}; Path=/`);
 							res.writeHead(200);
 							res.end(JSON.stringify({
-								userid: null,
-								status: "SUCCESS"
+								status: "SUCCESS",
+								userid: null
 							}));
 						});
 					} else {
-						res.writeHead(404);
-						res.end(JSON.stringify({status: "FAIL"}));
+						res.writeHead(401);
+						res.end(JSON.stringify({
+							status: "FAIL",
+							reason: "Session expired or inactive"
+						}));
 					}
 				});
 			});
@@ -136,5 +161,6 @@ function handleAuth(req, res, next) {
  */
 module.exports = function (router) {
 	router.use(handleCookies);
+	router.use(handleSession);
 	router.all("/auth", handleAuth);
 };

@@ -1,8 +1,6 @@
-import React, {Component, Fragment} from 'react';
+import React, {Component} from 'react';
 import ReactDOM from 'react-dom'
-import Carousel, { Modal, ModalGateway } from 'react-images';
 import Xhr from "xhr";
-import _ from "lodash";
 
 type LoginProps = {}
 
@@ -14,7 +12,7 @@ type LoginState = {
 export class Login extends Component<LoginProps, LoginState> {
   constructor(props) {
     super(props);
-    this.state = { username: "", password: ""};
+    this.state = {username: "", password: ""};
   }
   
   handleSubmit(e) {
@@ -26,9 +24,9 @@ export class Login extends Component<LoginProps, LoginState> {
         if (error) {
           console.error(error);
         } else {
-          switch(body.status) {
+          switch (body.status) {
             case "SUCCESS":
-              window.location.href = "/login.html";
+              window.location.href = "/gallery.html";
               break;
             case "FAIL":
               //TODO: NOAH DOES THINGS WITH THIS IN THE UI BECAUSE YOU CAN OKAY!?
@@ -39,7 +37,7 @@ export class Login extends Component<LoginProps, LoginState> {
     )
   }
   
-  render () {
+  render() {
     return (
       <div>
         <label>Username</label>

@@ -4,7 +4,35 @@ function handleUser(req, res, next) {
 	switch (req.method) {
 		case "GET":
 			res.setHeader("Content-Type", "application/json");
-			res.end();
+			Promise.all([MongoDB.Users(), MongoDB.Authentication()]).then(results => {
+				let [UserCol, AuthCol] = results;
+				AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
+					if (auth && Date.now() < auth.expireAt) {
+						UserCol.findOne({_id: auth.userid}).then(user => {
+							if (user) {
+								res.writeHead(200);
+								res.end(JSON.stringify({
+									status: "SUCCESS",
+									userid: user._id,
+									username: user.username
+								}))
+							} else {
+								res.writeHead(404);
+								res.end(JSON.stringify({
+									status: "FAIL",
+									reason: "User not found"
+								}));
+							}
+						})
+					} else {
+						res.writeHead(401);
+						res.end(JSON.stringify({
+							status: "FAIL",
+							reason: "Session expired or inactive"
+						}));
+					}
+				});
+			});
 			break;
 		case "POST":
 			res.setHeader("Content-Type", "application/json");
@@ -14,8 +42,8 @@ function handleUser(req, res, next) {
 			});
 			req.on("end",function () {
 				const MESSAGE = JSON.parse(body);
-				MongoDB.Users().then(collection => {
-					collection.findOne({username: MESSAGE.username}).then(row => {
+				MongoDB.Users().then(UserCol => {
+					UserCol.findOne({username: MESSAGE.username}).then(row => {
 						if (row) {
 							res.writeHead(400);
 							res.end(JSON.stringify({
@@ -24,14 +52,17 @@ function handleUser(req, res, next) {
 							}));
 						} else {
 							if (MESSAGE.password1 === MESSAGE.password2) {
-								collection.insertOne({
-									_id: uuid(),
+								const ID = uuid();
+								UserCol.insertOne({
+									_id: ID,
 									username: MESSAGE.username,
 									password: MESSAGE.password1
 								}).then(result => {
 									res.writeHead(200);
 									res.end(JSON.stringify({
-										status: "SUCCESS"
+										status: "SUCCESS",
+										userid: ID,
+										username: MESSAGE.username
 									}));
 								});
 							} else {
