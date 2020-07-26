@@ -20,8 +20,8 @@ function handleSession(req, res, next) {
 				res.setHeader("User-Session", false);
 				next();
 			}
-		})
-	})
+		});
+	});
 }
 
 function handleAuth(req, res, next) {
