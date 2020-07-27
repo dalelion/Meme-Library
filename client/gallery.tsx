@@ -45,13 +45,30 @@ export class InputBox extends Component<any, InputBoxState> {
             debugger;
             this.setState({images: results.map(result => ({source: `/file/${result.filepath.replace(/Files[\/\\]/, '')}`}))})
           });
-        }}/>
+        }} value={'Search'}/>
         <Gallery images={this.state.images}/>
       </div>
       
     );
   }
-  
+
+  componentDidMount() {
+      new Promise( (resolve, reject) => {
+          Xhr.get(`/file?tags=`, (error, res) => {
+              if (error) {
+                  reject(error);
+              } else {
+                  let result = _.isString(res.body) ? JSON.parse(res.body) : res.body;
+                  resolve(result.files);
+              }
+          });
+      }).then((results: File[]) => {
+          console.log(results);
+          debugger;
+          this.setState({images: results.map(result => ({source: `/file/${result.filepath.replace(/Files[\/\\]/, '')}`}))})
+      });
+  }
+
 }
 
 export class Gallery extends Component<GalleryProps, GalleryState> {

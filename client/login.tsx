@@ -47,7 +47,7 @@ export class Login extends Component<LoginProps, LoginState> {
           <input type={'password'} placeholder={'M3M35'} name={'Password'} onChange={e => this.setState({password: e.target.value})} required/>
         </div>
         <div>
-          <button type={'submit'} onClick={e => this.handleSubmit(e)}>Login</button>
+          <button type={'submit'} onClick={e => this.handleSubmit(e)}>Login</button> <a href={'/register.html'}>New Account?</a>
         </div>
       </div>
     );
