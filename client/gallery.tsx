@@ -19,6 +19,7 @@ type InputBoxState = {
 
 export class InputBox extends Component<any, InputBoxState> {
   private textRef: React.RefObject<HTMLInputElement>;
+  private session_: number;
 
   constructor(props) {
     super(props);
@@ -52,6 +53,20 @@ export class InputBox extends Component<any, InputBoxState> {
     );
   }
   
+  componentWillMount(): void {
+    window.clearInterval(this.session_);
+    this.session_ = window.setInterval(() => {
+      Xhr.put("/auth", (error, res) => {
+        if (res.statusCode >= 400) {
+          window.location.href = "/";
+        }
+      });
+    }, 60000);
+  }
+  
+  componentWillUnmount(): void {
+    window.clearInterval(this.session_);
+  }
 }
 
 export class Gallery extends Component<GalleryProps, GalleryState> {
@@ -140,4 +155,10 @@ type File = {
   _id: string;
 }
 
-ReactDOM.render(<InputBox/>, document.querySelector('#mount'));
+Xhr.put("/auth", (error, res) => {
+  if (res.statusCode >= 400) {
+    window.location.href = "/";
+  } else {
+    ReactDOM.render(<InputBox/>, document.querySelector('#mount'));
+  }
+});
