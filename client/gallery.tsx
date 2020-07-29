@@ -19,6 +19,7 @@ type InputBoxState = {
 
 export class InputBox extends Component<any, InputBoxState> {
   private textRef: React.RefObject<HTMLInputElement>;
+  private session_: number;
 
   constructor(props) {
     super(props);
@@ -51,24 +52,35 @@ export class InputBox extends Component<any, InputBoxState> {
       
     );
   }
-
-  componentDidMount() {
-      new Promise( (resolve, reject) => {
-          Xhr.get(`/file?tags=`, (error, res) => {
-              if (error) {
-                  reject(error);
-              } else {
-                  let result = _.isString(res.body) ? JSON.parse(res.body) : res.body;
-                  resolve(result.files);
-              }
-          });
-      }).then((results: File[]) => {
-          console.log(results);
-          debugger;
-          this.setState({images: results.map(result => ({source: `/file/${result.filepath.replace(/Files[\/\\]/, '')}`}))})
+  
+  componentWillMount(): void {
+    new Promise( (resolve, reject) => {
+      Xhr.get(`/file?tags=`, (error, res) => {
+        if (error) {
+          reject(error);
+        } else {
+          let result = _.isString(res.body) ? JSON.parse(res.body) : res.body;
+          resolve(result.files);
+        }
       });
+    }).then((results: File[]) => {
+      console.log(results);
+      debugger;
+      this.setState({images: results.map(result => ({source: `/file/${result.filepath.replace(/Files[\/\\]/, '')}`}))})
+    });
+    window.clearInterval(this.session_);
+    this.session_ = window.setInterval(() => {
+      Xhr.put("/auth", (error, res) => {
+        if (res.statusCode >= 400) {
+          window.location.href = "/login.html";
+        }
+      });
+    }, 60000);
   }
-
+  
+  componentWillUnmount(): void {
+    window.clearInterval(this.session_);
+  }
 }
 
 export class Gallery extends Component<GalleryProps, GalleryState> {
@@ -157,4 +169,10 @@ type File = {
   _id: string;
 }
 
-ReactDOM.render(<InputBox/>, document.querySelector('#mount'));
+Xhr.put("/auth", (error, res) => {
+  if (res.statusCode >= 400) {
+    window.location.href = "/login.html";
+  } else {
+    ReactDOM.render(<InputBox/>, document.querySelector('#mount'));
+  }
+});

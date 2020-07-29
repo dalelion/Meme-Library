@@ -31,6 +31,7 @@ export class Login extends Component<LoginProps, LoginState> {
               break;
             case "FAIL":
               //TODO: NOAH DOES THINGS WITH THIS IN THE UI BECAUSE YOU CAN OKAY!?
+                alert('Something went wrong, try again.');
               break;
           }
         }
