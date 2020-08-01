@@ -3,6 +3,7 @@ const formidable = require("formidable");
 const Utils = require("../shared/utils");
 const afs = require("./afs");
 const MongoDB = require("./mongo");
+const MD5 = require("crypto-js/md5");
 const fs = require("fs");
 
 function session(req) {
@@ -57,22 +58,27 @@ function handleUpload(req, res, next) {
 				}
 			}).then(success => {
 				let form = formidable({
+					hash: "md5",
 					multiples: true,
 					keepExtensions: true,
 					uploadDir: "./Files"
 				});
 				form.parse(req, (err, fields, values) => {
 					let tags = _.compact(fields.tags.split(' '));
-					if (!_.isArray(values.fileToUpload)) {
-						values.fileToUpload = [values.fileToUpload];
+					let uploaded = [];
+					if (_.isArray(values.fileToUpload)) {
+						uploaded = values.fileToUpload;
+					} else {
+						uploaded = [values.fileToUpload];
 					}
 					MongoDB.Images().then(ImageCol => {
-						let files = _.transform(values.fileToUpload, (acc, file, key) => {
+						let files = _.transform(uploaded, (acc, file, key) => {
 							acc.push({
 								userid: auth.userid,
 								filepath: file.path,
 								filename: file.name,
 								mimetype: file.type,
+								md5: file.hash,
 								tags
 							});
 						}, []);
