@@ -11,7 +11,7 @@ const RELATIVE_PATH = `./${MATCH.input.substr(MATCH.index + MATCH[0].length)}`;
 if (RELATIVE_PATH !== "./") {
 	console.error(`Please run this command in the Root Directory: ${ROOT_PATH}`)
 }
-const CLIENT_ENTRY = Path.join(ROOT_PATH, "./client/*.tsx");
+const CLIENT_ENTRY = Path.join(ROOT_PATH, "./client/*.html");
 const SERVER_ENTRY = Path.join(ROOT_PATH, "./server/index.js");
 // Bundler options
 const options = {
@@ -38,7 +38,7 @@ const CLIENT_OPTIONS = {
 	watch: true, // Whether to watch the files and rebuild them on change, defaults to process.env.NODE_ENV !== 'production'
 	minify: false, // Minify files, enabled if process.env.NODE_ENV === 'production'
 	bundleNodeModules: true, // By default, package.json dependencies are not included when using 'node' or 'electron' with 'target' option above. Set to true to adds them to the bundle, false by default
-	outDir: './dist/server/public/js' // The out directory to put the build files in, defaults to dist
+	outDir: './dist/server/public' // The out directory to put the build files in, defaults to dist
 	// outFile: `./index.js` // The name of the outputFile
 };
 
@@ -62,13 +62,6 @@ async function run(resolve, reject) {
 	});
 	
 	CLIENT.on("buildEnd", async () => {
-		let cp = new Promise(resolve => {
-			child_process.spawn(...["cp", ["-r", "../../public", "./"], {
-				stdio: "inherit",
-				cwd: Path.join(ROOT_PATH, SERVER_OPTIONS.outDir)
-			}]).on("close", resolve);
-		});
-		await cp;
 		if (!server_compiling) {
 			process.stdout.write(`Client Code Rebuilt; Restarting Server...\n`);
 			await SERVER.bundle();

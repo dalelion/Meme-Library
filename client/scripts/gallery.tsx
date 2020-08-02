@@ -46,7 +46,7 @@ export class InputBox extends Component<any, InputBoxState> {
             debugger;
             this.setState({images: results.map(result => ({source: `/file/${result.filepath.replace(/Files[\/\\]/, '')}`}))})
           });
-        }}/>
+        }} value={'Search'}/>
         <Gallery images={this.state.images}/>
       </div>
       
@@ -54,11 +54,25 @@ export class InputBox extends Component<any, InputBoxState> {
   }
   
   componentWillMount(): void {
+    new Promise( (resolve, reject) => {
+      Xhr.get(`/file?tags=`, (error, res) => {
+        if (error) {
+          reject(error);
+        } else {
+          let result = _.isString(res.body) ? JSON.parse(res.body) : res.body;
+          resolve(result.files);
+        }
+      });
+    }).then((results: File[]) => {
+      console.log(results);
+      debugger;
+      this.setState({images: results.map(result => ({source: `/file/${result.filepath.replace(/Files[\/\\]/, '')}`}))})
+    });
     window.clearInterval(this.session_);
     this.session_ = window.setInterval(() => {
       Xhr.put("/auth", (error, res) => {
         if (res.statusCode >= 400) {
-          window.location.href = "/";
+          window.location.href = "/login.html";
         }
       });
     }, 60000);
@@ -157,7 +171,7 @@ type File = {
 
 Xhr.put("/auth", (error, res) => {
   if (res.statusCode >= 400) {
-    window.location.href = "/";
+    window.location.href = "/login.html";
   } else {
     ReactDOM.render(<InputBox/>, document.querySelector('#mount'));
   }

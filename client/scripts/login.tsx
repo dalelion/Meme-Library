@@ -6,18 +6,17 @@ type LoginProps = {}
 
 type LoginState = {
   username: string;
-  password1: string;
-  password2: string;
+  password: string;
 }
 
 export class Login extends Component<LoginProps, LoginState> {
   constructor(props) {
     super(props);
-    this.state = {username: "", password1: "", password2: ""};
+    this.state = {username: "", password: ""};
   }
   
   handleSubmit(e) {
-    Xhr.post("/user", {
+    Xhr.post("/auth", {
         body: this.state,
         json: true
       },
@@ -25,17 +24,18 @@ export class Login extends Component<LoginProps, LoginState> {
         if (error) {
           console.error(error);
         } else {
-          switch(body.status) {
+          switch (body.status) {
             case "SUCCESS":
-              window.location.href = "/login.html";
+              window.location.href = "/gallery.html";
               break;
             case "FAIL":
               //TODO: NOAH DOES THINGS WITH THIS IN THE UI BECAUSE YOU CAN OKAY!?
+                alert('Wrong username or password. Try again.');
               break;
           }
         }
       }
-    );
+    )
   }
   
   render() {
@@ -45,14 +45,10 @@ export class Login extends Component<LoginProps, LoginState> {
         <input type={'text'} placeholder={'ex. Memes'} name={'Username'} value={this.state.username} onChange={e => this.setState({username: e.target.value})} required/>
         <div>
           <label>Password</label>
-          <input type={'password'} placeholder={'Password'} name={'Password1'} value={this.state.password1} onChange={e => this.setState({password1: e.target.value})} required/>
+          <input type={'password'} placeholder={'M3M35'} name={'Password'} onChange={e => this.setState({password: e.target.value})} required/>
         </div>
         <div>
-          <label>Re-enter Password</label>
-          <input type={'password'} placeholder={'Re-enter Password'} name={'Password2'} value={this.state.password2} onChange={e => this.setState({password2: e.target.value})} required/>
-        </div>
-        <div>
-          <button type={'submit'} onClick={e => this.handleSubmit(e)}>Register</button>
+          <button type={'submit'} onClick={e => this.handleSubmit(e)}>Login</button> <a href={'/register.html'}>New Account?</a>
         </div>
       </div>
     );

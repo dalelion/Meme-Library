@@ -56,4 +56,10 @@ export class Upload extends React.Component<any, UploadState> {
   }
 }
 
-ReactDOM.render(<Upload/>, document.querySelector("#mount"));
+Xhr.put("/auth", (error, res) => {
+  if (res.statusCode >= 400) {
+    window.location.href = "/login.html";
+  } else {
+    ReactDOM.render(<Upload/>, document.querySelector("#mount"));
+  }
+});
