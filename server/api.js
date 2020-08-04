@@ -5,6 +5,7 @@ const afs = require("./afs");
 const MongoDB = require("./mongo");
 const MD5 = require("crypto-js/md5");
 const fs = require("fs");
+const path = require("path");
 
 function session(req) {
 	if (req.cookies.session_id) {
@@ -75,7 +76,7 @@ function handleUpload(req, res, next) {
 						let files = _.transform(uploaded, (acc, file, key) => {
 							acc.push({
 								userid: auth.userid,
-								filepath: file.path,
+								filepath: path.normalize(file.path),
 								filename: file.name,
 								mimetype: file.type,
 								md5: file.hash,
@@ -118,4 +119,39 @@ module.exports = function (router) {
 	let files = router.route("/file");
 	files.get(handleSearch);
 	files.post(handleUpload);
+	const UPLOAD_PATH = `Files/`;
+	afs.mkdir(UPLOAD_PATH, {recursive: true}).then(_.stubTrue).catch(_.stubFalse).then(result => {
+		if (result) {
+			let watcher = fs.watch(UPLOAD_PATH, {recursive: true}, (type, name) => {
+				switch (type) {
+					case "rename":
+						afs.stat(path.join(UPLOAD_PATH, name)).then(_.stubTrue).catch(_.stubFalse).then(exists => {
+							if (!exists) {
+								MongoDB.Images().then(ImageCol => {
+									let filepath = path.normalize(path.join(UPLOAD_PATH, name));
+									ImageCol.deleteOne({filepath});
+									//You could log this
+								})
+							}
+						});
+						break;
+					case "change":
+						break;
+				}
+			});
+			process.on("beforeExit", code => {
+				watcher.close();
+			});
+			MongoDB.Images().then(ImageCol => {
+				ImageCol.find({}).toArray().then(items => Promise.all(items.map(item =>
+					afs.stat(item.filepath)
+					.then(stat => false)
+					.catch(error => ImageCol.deleteOne(item)
+					.then(op => item))
+				)))
+				.then(_.compact)
+				//.then(...); You could log this
+			});
+		}
+	});
 };
