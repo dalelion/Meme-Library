@@ -98,7 +98,9 @@ function handleUpload(req, res, next) {
 function handleDownload(req, res, next) {
 	if (session(req, res)) {
 		if (req.params.file_id) {
-			fs.createReadStream(`Files/${req.params.file_id}`).pipe(res);
+			fs.createReadStream(`Files/${req.params.file_id}`).on("error", error => {
+				next();
+			}).pipe(res);
 		} else {
 			next();
 		}
