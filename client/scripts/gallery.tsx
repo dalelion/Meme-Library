@@ -108,7 +108,8 @@ export class Gallery extends Component<GalleryProps, GalleryState> {
                 style={{
                   cursor: 'pointer',
                   position: 'absolute',
-                  maxWidth: '100%',
+                  height: '100%',
+                  maxWidth: "100%"
                 }}
               />
             </Image>
@@ -156,6 +157,8 @@ const Image = (props: any) => (
       ':hover': {
         opacity: 0.9,
       },
+      display: "flex",
+      placeContent: "center"
     }}
     {...props}
   />
