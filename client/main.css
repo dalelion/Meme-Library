@@ -1,0 +1,41 @@
+
+body {
+    background-color: #adcbe3;
+    color: #2a4d69;
+    font-size: 18pt;
+}
+
+input, button {
+    font-size: 18pt;
+    margin: 10px;
+    border-radius: 10%;
+}
+
+a {
+    color: #2a4d69;
+}
+
+#navigator {
+    font-size: 20pt;
+    font-weight: bold;
+    text-align: center;
+}
+
+hr {
+    width: 80%;
+    height: 8px;
+    background-color:#2a4d69;
+    margin-bottom: 30px;
+    border: none;
+}
+
+.userInput {
+    font-size: 150%;
+    text-align: center;
+    background-color: #63ace5;
+    margin-left: 30%;
+    margin-right: 30%;
+    border-radius: 30%;
+}
+
+/*Color Scheme https://coolors.co/3e78b2-004ba8-4a525a-24272b-07070a*/

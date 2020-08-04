@@ -9,7 +9,7 @@ export class Navigator extends React.Component<any, any> {
   render() {
     return (
       <div>
-        | {[
+        {[
         ["gallery", "Gallery"],
         [],
         ["upload", "Upload Files"],
@@ -19,7 +19,8 @@ export class Navigator extends React.Component<any, any> {
         ["login", "Login Testing"],
         [],
         ["download", "Download Testing"]
-      ].map(([href, label], index) => href && label && <a href={`/${href}.html`} key={index}>{label}</a> || " | ")} |
+      ].map(([href, label], index) => href && label && <a href={`/${href}.html`} key={index}>{label}</a> || " | ")}
+        <hr/>
       </div>
     );
   }
