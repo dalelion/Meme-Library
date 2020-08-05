@@ -6,14 +6,16 @@ const MongoDB = require("./mongo");
 const MAX_AGE = 5 * 6e+4;
 
 function handleSession(req, res, next) {
-	const EXPIRY = Date.now() + MAX_AGE;
 	MongoDB.Authentication().then(AuthCol => {
 		AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
-			if (auth && Date.now() < auth.expireAt) {
-				const EXPIRES = new Date(EXPIRY);
-				AuthCol.updateOne({_id: req.cookies.session_id}, [{$set: {expireAt: EXPIRES}}], {upsert: false}).finally(() => {
+			if (auth && NOW < auth.expireAt) {
+				const UPDATE = {
+					...auth,
+					expireAt: new Date(Date.now() + MAX_AGE)
+				};
+				AuthCol.updateOne({_id: req.cookies.session_id}, [{$set: UPDATE}], {upsert: true}).finally(() => {
 					res.setHeader("User-Session", true);
-					res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${EXPIRES.toUTCString()}; Path=/`);
+					res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${UPDATE.expireAt.toUTCString()}; Path=/`);
 					next();
 				});
 			} else {
@@ -25,7 +27,6 @@ function handleSession(req, res, next) {
 }
 
 function handleAuth(req, res, next) {
-	const EXPIRY = Date.now() + MAX_AGE;
 	switch (req.method) {
 		case "GET":
 			MongoDB.Authentication().then(AuthCol => {
@@ -52,9 +53,12 @@ function handleAuth(req, res, next) {
 				AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
 					res.setHeader("Content-Type", "application/json");
 					if (auth && Date.now() < auth.expireAt) {
-						const EXPIRES = new Date(EXPIRY);
-						AuthCol.updateOne({_id: req.cookies.session_id}, [{$set: {expireAt: EXPIRES}}], {upsert: false}).then(auth => {
-							res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${EXPIRES.toUTCString()}; Path=/`);
+						const UPDATE = {
+							...auth,
+							expireAt: new Date(Date.now() + MAX_AGE)
+						};
+						AuthCol.updateOne({_id: req.cookies.session_id}, [{$set: UPDATE}], {upsert: true}).then(auth => {
+							res.setHeader("Set-Cookie", `session_id=${req.cookies.session_id}; Expires=${UPDATE.expireAt.toUTCString()}; Path=/`);
 							res.writeHead(200);
 							res.end(JSON.stringify({
 								status: "SUCCESS",
@@ -85,7 +89,6 @@ function handleAuth(req, res, next) {
 						if (user) {
 							if (user.password === MESSAGE.password) {
 								AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
-									
 									if (auth && Date.now() > auth.expireAt) {
 										res.writeHead(200);
 										res.end(JSON.stringify({
@@ -94,13 +97,13 @@ function handleAuth(req, res, next) {
 										}));
 									} else {
 										const ID = uuidv4();
-										const EXPIRES = new Date(EXPIRY);
-										AuthCol.insertOne({
+										const ENTRY = {
 											_id: ID,
 											userid: user._id,
-											expireAt: EXPIRES
-										}).then(result => {
-											res.setHeader("Set-Cookie", `session_id=${ID}; Expires=${EXPIRES.toUTCString()}; Path=/`);
+											expireAt: new Date(Date.now() + MAX_AGE)
+										};
+										AuthCol.insertOne(ENTRY).then(result => {
+											res.setHeader("Set-Cookie", `session_id=${ID}; Expires=${ENTRY.expireAt.toUTCString()}; Path=/`);
 											res.writeHead(200);
 											res.end(JSON.stringify({
 												status: "SUCCESS",
