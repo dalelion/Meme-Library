@@ -43,7 +43,6 @@ export class InputBox extends Component<any, InputBoxState> {
             });
           }).then((results: File[]) => {
             console.log(results);
-            debugger;
             this.setState({images: results.map(result => ({source: `/file/${result.filepath.replace(/Files[\/\\]/, '')}`}))})
           });
         }} value={'Search'}/>
@@ -65,7 +64,6 @@ export class InputBox extends Component<any, InputBoxState> {
       });
     }).then((results: File[]) => {
       console.log(results);
-      debugger;
       this.setState({images: results.map(result => ({source: `/file/${result.filepath.replace(/Files[\/\\]/, '')}`}))})
     });
     window.clearInterval(this.session_);
