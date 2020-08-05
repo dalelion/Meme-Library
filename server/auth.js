@@ -8,7 +8,7 @@ const MAX_AGE = 5 * 6e+4;
 function handleSession(req, res, next) {
 	MongoDB.Authentication().then(AuthCol => {
 		AuthCol.findOne({_id: req.cookies.session_id}).then(auth => {
-			if (auth && NOW < auth.expireAt) {
+			if (auth && Date.now() < auth.expireAt) {
 				const UPDATE = {
 					...auth,
 					expireAt: new Date(Date.now() + MAX_AGE)
